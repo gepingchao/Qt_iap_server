@@ -175,6 +175,14 @@ void iap_server::deal_data_from_client(QByteArray data)
 {
     unsigned char function;
     int page_num = 0;
+    int packet_length = 0;
+    packet_length = data.at(2);
+    packet_length <<= 8;
+    packet_length += data.at(3);
+    if(mycrc.VerifyCRC8Sub(data.data(),packet_length-1) == 0X00)
+    {
+        //return;
+    }
     function = (unsigned char)data.at(7);
     switch(function)//function
     {
@@ -190,14 +198,12 @@ void iap_server::deal_data_from_client(QByteArray data)
         page_num |= data.at(9)& 0X000000FF;
         ui->progressBar_download->setValue(page_num);
         transmission_iap_data_by_wifi(G_App_file,page_num);
-        if(page_num == ui->progressBar_download->maximum())
-        {
-            myHelper::ShowMessageBoxInfo("升级完成!");
-            ui->progressBar_download->setVisible(false);
-        }
+
     break;
 
     case 0XF3:
+        myHelper::ShowMessageBoxInfo("升级完成!");
+        ui->progressBar_download->setVisible(false);
     break;
 
     case 0XF4:
